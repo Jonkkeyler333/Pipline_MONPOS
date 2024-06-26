@@ -1,4 +1,2 @@
-
-__version__ = "1.0.0"
-def say_hello():
-    print("Hello from MDBtoPG!")
+__version__ = "1.0"
+from .migrator import MongoToPostgresMigrator
