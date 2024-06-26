@@ -12,27 +12,29 @@ class MongoToPostgresMigrator:
 
     def migrate(self,columns_mapping=1,varchar_size=50):
         if columns_mapping:
-            data_mongo,columns=self._mongo_data()
+            data_mongo,columns,query=self._mongo_data()
         else:
-            data_mongo,columns=self._mongo_data(columns_mapping)
-        data_types=self._get_dtype(data_mongo[0],varchar_size)
+            data_mongo,columns,query=self._mongo_data(columns_mapping)
+        data_types=self._get_dtype(query[0],varchar_size)
         self._create_table(columns,data_types)
-        query = """
+        querys = """
             SELECT table_name
             FROM information_schema.tables
             WHERE table_schema = 'public'  -- Puedes ajustar esto según el esquema de tu base de datos
             AND table_type = 'BASE TABLE';
         """
         cursor1=self.postgresql_conexion.cursor()
-        cursor1.execute(query)
+        cursor1.execute(querys)
         for elem in cursor1:
             print(elem)
         cursor1.close()
         insert='('
-        for k in range(len(columns)+1):
+        for k in range(len(columns)):
             insert+='%s,'
         insert=insert[:-1]+')'
         cursor2=self.postgresql_conexion.cursor()
+        print(f'Sample of the data to insert : {data_mongo[0]}')
+        print(f'format to insert : {insert}')
         insert_query=f"INSERT INTO public.{self.mongo_co} VALUES {insert}"
         for row in data_mongo:
             cursor2.execute(insert_query,row)
@@ -67,11 +69,11 @@ class MongoToPostgresMigrator:
         else:
             query=list(collection.find({},{column:1 for column in columns_mapping}))
             documents=[tuple(document.values()) for document in query]
-        for elem in documents:
+        for elem in query:
             for key in elem.keys():
                 if key not in columns:
                     columns.append(key)
-        return documents,columns
+        return documents,columns,query
     
     def _get_dtype(self,data:dict,varchar_size):
         dtype=[]
