@@ -1,5 +1,3 @@
-import json
-
 class MongoToPostgresMigrator:
     """
     Migrate data from MongoDB to PostgreSQL
@@ -30,10 +28,18 @@ class MongoToPostgresMigrator:
         for elem in cursor1:
             print(elem)
         cursor1.close()
+        insert='('
+        for k in range(len(columns)+1):
+            insert+='%s,'
+        insert=insert[:-1]+')'
         cursor2=self.postgresql_conexion.cursor()
-        
-            
-            
+        insert_query=f"INSERT INTO public.{self.mongo_co} VALUES {insert}"
+        for row in data_mongo:
+            cursor2.execute(insert_query,row)
+        self.postgresql_conexion.commit()
+        self.postgresql_conexion.close()
+        print('Data migrated successfully')
+         
     def _get_collection(self):
         """get the collection from the mongoDB
 
@@ -91,6 +97,4 @@ class MongoToPostgresMigrator:
         for column,dtype in zip(columns,dtypes):
             query+=column+' '+dtype+','
         query=query[:-1]+')'
-        cursor.execute(query)
-        cursor.commit()
-        cursor.close()         
+        cursor.execute(query)    
