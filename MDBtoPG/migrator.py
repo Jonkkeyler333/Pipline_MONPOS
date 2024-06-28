@@ -20,7 +20,7 @@ class MongoToPostgresMigrator:
         querys = """
             SELECT table_name
             FROM information_schema.tables
-            WHERE table_schema = 'public'  -- Puedes ajustar esto según el esquema de tu base de datos
+            WHERE table_schema = 'public'
             AND table_type = 'BASE TABLE';
         """
         cursor1=self.postgresql_conexion.cursor()
